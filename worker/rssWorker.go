@@ -1,19 +1,19 @@
 package worker
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/mmcdole/gofeed"
 )
 
-func parse() {
+func StartRssWorker(callback func(feed *gofeed.Feed)) {
 	fp := gofeed.NewParser()
 
 	feed, err := fp.ParseURL("")
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
-	fmt.Println(feed.Title)
+	callback(feed)
 
 }

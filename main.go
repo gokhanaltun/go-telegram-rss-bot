@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 
 	bot "github.com/gokhanaltun/go-telegram-bot"
 	"github.com/gokhanaltun/go-telegram-rss-bot/commands"
+	"github.com/gokhanaltun/go-telegram-rss-bot/middlewares"
 	"github.com/joho/godotenv"
 )
 
@@ -14,14 +16,16 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	opts := []bot.Option{
-		bot.WithDefaultHandler(commands.DefaultHandler),
+		bot.WithMiddlewares(middlewares.CheckUser),
+		bot.WithCallbackQueryDataHandler("deleteRssSelect", bot.MatchTypePrefix, commands.DeleteRssSelectHandler),
+		bot.WithCallbackQueryDataHandler("deleteRssConfirm", bot.MatchTypePrefix, commands.DeleteRssConfirmHandler),
 	}
 
 	b, err := bot.New(os.Getenv("TOKEN"), opts...)
@@ -29,7 +33,24 @@ func main() {
 		panic(err)
 	}
 
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, commands.Start)
+	commands.Init()
 
+	stages := map[int]bot.HandlerFunc{
+		commands.RssNameStage: commands.RssNameHandler,
+		commands.RssUrlStage:  commands.RssUrlHandler,
+	}
+
+	convEnd := bot.ConversationEnd{
+		Command:  "/cancel",
+		Function: commands.CancelConversation,
+	}
+
+	convHandler := bot.NewConversationHandler(stages, &convEnd)
+
+	b.AddConversationHandler(convHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, commands.Start)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/add", bot.MatchTypeExact, commands.AddRss)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/list", bot.MatchTypeExact, commands.ListRss)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/delete", bot.MatchTypeExact, commands.DeleteRss)
 	b.Start(ctx)
 }

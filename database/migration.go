@@ -1,4 +1,4 @@
-package migration
+package database
 
 import (
 	"github.com/gokhanaltun/go-telegram-rss-bot/models"

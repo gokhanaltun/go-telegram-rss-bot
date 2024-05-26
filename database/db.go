@@ -1,7 +1,6 @@
-package db
+package database
 
 import (
-	"github.com/gokhanaltun/go-telegram-rss-bot/database/migration"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -16,7 +15,7 @@ func GetDb() *gorm.DB {
 		}
 
 		db = gormDB
-		migration.Migrate(db)
+		Migrate(db)
 	}
 	return db
 }
