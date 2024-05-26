@@ -29,9 +29,14 @@ const (
 )
 
 func Start(ctx context.Context, b *bot.Bot, update *models.Update) {
+	startMessage := "Merhaba " + update.Message.From.FirstName + " :)\n\n" +
+		"Yeni kayıt eklemek için      /add\n\n" +
+		"Kayıtları listelemek için    /list\n\n" +
+		"Bir kayıt silmek için          /delete"
+
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "Merhaba " + update.Message.From.FirstName + " :)",
+		Text:   startMessage,
 	})
 }
 
@@ -40,7 +45,7 @@ func AddRss(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "Rss ismi girin.",
+		Text:   "Rss ismi girin. İptal etmek için /cancel komutunu kullanın.",
 	})
 }
 
@@ -203,7 +208,7 @@ func DeleteRssSelectHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		Text:        data[2] + " isimli kaydı silmek istiyor musunuz?.",
+		Text:        data[2] + " isimli kaydı silmek istiyor musunuz?",
 		ReplyMarkup: inlineKeyboardMarkup,
 	})
 }
