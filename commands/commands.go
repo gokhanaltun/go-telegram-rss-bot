@@ -1,3 +1,4 @@
+// TODO: "Command will be added to set whether notification messages will be received."
 package commands
 
 import (
@@ -6,7 +7,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	bot "github.com/gokhanaltun/go-telegram-bot"
 	"github.com/gokhanaltun/go-telegram-bot/models"
@@ -92,9 +92,10 @@ func RssUrlHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	result = db.Create(&dbModels.Feed{
-		Name:     rssName,
-		Url:      update.Message.Text,
-		LastRead: time.Now().UTC().String(),
+		Name:         rssName,
+		Url:          update.Message.Text,
+		LastRead:     "2006-01-02 15:04:05 +0000 UTC",
+		Notification: true,
 	})
 
 	if result.Error != nil {
@@ -134,9 +135,14 @@ func ListRss(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	for _, feed := range feeds {
+		name := "Name: " + feed.Name + "\n"
+		url := "Url: " + feed.Url + "\n"
+		lastRead := "Last Read: " + feed.LastRead + "\n"
+		notification := "Notification: " + map[bool]string{true: "true", false: "false"}[feed.Notification]
+
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Name: " + feed.Name + "\n" + "Url: " + feed.Url + "\n" + "Last Read: " + feed.LastRead,
+			Text:   name + url + lastRead + notification,
 		})
 	}
 }
