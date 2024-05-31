@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 
 	bot "github.com/gokhanaltun/go-telegram-bot"
 	"github.com/gokhanaltun/go-telegram-rss-bot/commands"
@@ -56,13 +56,15 @@ func main() {
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/list", bot.MatchTypeExact, commands.ListRss)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/delete", bot.MatchTypeExact, commands.DeleteRss)
 
-	go worker.StartRssWorker(rssWorkerCallback)
+	go worker.StartRssWorker(func(feeds []*gofeed.Item) {
+		id, _ := strconv.Atoi(os.Getenv("ID"))
+		for _, item := range feeds {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: id,
+				Text:   item.Title + "\n" + item.Description,
+			})
+		}
+	})
 
 	b.Start(ctx)
-}
-
-func rssWorkerCallback(feeds []*gofeed.Item) {
-	for _, item := range feeds {
-		fmt.Println(item.PublishedParsed)
-	}
 }
